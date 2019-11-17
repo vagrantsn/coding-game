@@ -1,0 +1,13 @@
+.playerStats {
+  display: flex;
+  justify-content: space-between;
+
+  .equips,
+  .stats {
+
+    & div:not(:last-child) {
+      margin-bottom: 5px;
+    }
+  }
+
+}

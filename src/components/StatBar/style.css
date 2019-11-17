@@ -1,0 +1,18 @@
+.statbar {
+  background-color: #eee;
+  height: 20px;
+  width: 100px;
+
+  & > .bar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: inherit;
+    background-color: #ddd;
+
+    & > .label {
+      color: #141414;
+      font-size: 14px;
+    }
+  }
+}
