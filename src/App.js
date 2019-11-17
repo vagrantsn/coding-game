@@ -1,7 +1,9 @@
 import React from 'react'
 
+import Game from './containers/Game'
+
 const App = () => (
-  <h1>Hello!</h1>
+  <Game />
 )
 
 export default App

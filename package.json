@@ -6,6 +6,7 @@
   "license": "MIT",
   "dependencies": {
     "moment": "2.24.0",
+    "phaser": "3.20.1",
     "ramda": "0.26.1",
     "react": "16.10.2",
     "react-icons": "3.8.0"
