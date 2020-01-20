@@ -24,6 +24,7 @@
     "babel-loader": "8.0.6",
     "classnames": "2.2.6",
     "css-loader": "3.2.0",
+    "file-loader": "^4.3.0",
     "postcss-loader": "3.0.0",
     "postcss-modules": "1.4.1",
     "precss": "4.0.0",
