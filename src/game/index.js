@@ -1,27 +1,38 @@
 import Phaser from 'phaser'
 
+import mapTiles from '../assets/tiles/map.png'
+import mapScheme from '../assets/maps/map.json'
 import config from './config'
 import {
   gamepadUI,
   layoutUI,
+  mapUI,
 } from './ui'
 import { playerEvents } from './events'
 
 const factory = () => {
-  function preload () {}
+
+  function preload () {
+    this.load.image('map-tiles', mapTiles)
+    this.load.tilemapTiledJSON('basic', mapScheme)
+  }
 
   function create () {
+    const {
+      topZone,
+      bottomZone,
+    } = layoutUI(this)
 
-    layoutUI({
+    gamepadUI({
       scene: this,
-      primary: {},
-      bottom: {
-        ui: gamepadUI,
-        props: {
-          height: 250,
-          onTouch: playerEvents.move,
-        },
-      },
+      parent: bottomZone,
+      height: bottomZone.height
+    })
+
+    const walls = mapUI({
+      mapKey: 'basic',
+      parent: topZone,
+      scene: this,
     })
   }
 
