@@ -2,16 +2,20 @@ import Phaser from 'phaser'
 
 import config from '../config'
 
-class Map {
+class Map extends Phaser.Tilemaps.Tilemap {
   constructor (scene, parent, key) {
-    const map = scene.make.tilemap({ key })
+    const { data: mapConfig } = scene.cache.tilemap.get(key)
 
-    const tileset = map.addTilesetImage('map', 'map-tiles')
+    const mapData = Phaser.Tilemaps.Parsers.Tiled.ParseJSONTiled(key, mapConfig, true)
+
+    super(scene, mapData)
+
+    const tileset = this.addTilesetImage('map', 'map-tiles')
 
     const centerX = Phaser.Display.Bounds.GetCenterX(parent)
     const centerY = Phaser.Display.Bounds.GetCenterY(parent)
 
-    const walls = map.createStaticLayer('walls', tileset)
+    const walls = this.createStaticLayer('walls', tileset)
 
     const parentAspectRatio = parent.width / parent.height
     const mapAspectRatio = walls.width / walls.height

@@ -1,2 +1,2 @@
-export { default as Pacman } from './pacman'
+export { default as Player } from './player'
 export { default as Map } from './map'
