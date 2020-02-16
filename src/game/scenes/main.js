@@ -29,30 +29,19 @@ class Main extends Factory {
     this.load.image('map-tiles', mapTiles)
     this.load.tilemapTiledJSON('basic', mapScheme)
     this.load.spritesheet('pacman', pacman, {
-      frameWidth: 28,
-      frameHeight: 28,
+      frameWidth: 30,
+      frameHeight: 30,
     })
   }
 
   create () {
-    const {
-      topZone,
-      bottomZone,
-    } = layoutUI(this)
-
-    gamepadUI({
-      scene: this,
-      parent: bottomZone,
-      height: bottomZone.height
-    })
-
-    const map = new Map(this, topZone, 'basic')
-
+    const map = new Map(this, 'basic')
     const pacman = new Player(this, 400, 50, map)
 
-    this.physics.add.collider(pacman, map.walls)
-    // this.physics.add.collider(map.walls, pacman.headingColliders.getChildren(), () => {})
-    // this.physics.add.overlap(map.walls, values(pacman.headingColliders), pacman.onHeadingCollide)
+    this.physics.add.collider(pacman, map.state.walls)
+
+    map.mount()
+    map.addPlayer(pacman)
   }
 }
 

@@ -1,9 +1,25 @@
 import Phaser from 'phaser'
+import {
+  find,
+  map,
+  mergeLeft,
+  pick,
+  pipe,
+  prop,
+  propEq,
+} from 'ramda'
 
 import config from '../config'
 
+const getPositionObjectsFromMapData = pipe(
+  prop('objects'),
+  find(propEq('name', 'positions')),
+  prop('objects'),
+  map(pick(['id', 'x', 'y', 'type']))
+)
+
 class Map extends Phaser.Tilemaps.Tilemap {
-  constructor (scene, parent, key) {
+  constructor (scene, key) {
     const { data: mapConfig } = scene.cache.tilemap.get(key)
 
     const mapData = Phaser.Tilemaps.Parsers.Tiled.ParseJSONTiled(key, mapConfig, true)
@@ -12,29 +28,8 @@ class Map extends Phaser.Tilemaps.Tilemap {
 
     const tileset = this.addTilesetImage('map', 'map-tiles')
 
-    const centerX = Phaser.Display.Bounds.GetCenterX(parent)
-    const centerY = Phaser.Display.Bounds.GetCenterY(parent)
-
     const walls = this.createStaticLayer('walls', tileset)
-
-    const parentAspectRatio = parent.width / parent.height
-    const mapAspectRatio = walls.width / walls.height
-
-    let mapWidth = parent.width
-    let mapHeight = parent.height
-
-    if (mapAspectRatio > parentAspectRatio) {
-      mapHeight = parent.width / mapAspectRatio
-    } else {
-      mapWidth = parent.height * mapAspectRatio
-    }
-
-    walls.setDisplaySize(mapWidth, mapHeight)
-
-    walls.setPosition(
-      centerX - (walls.displayWidth / 2),
-      centerY - (walls.displayHeight / 2)
-    )
+    const ground = this.createStaticLayer('ground', tileset)
 
     walls.setCollisionByProperty({ collides: true })
 
@@ -48,9 +43,69 @@ class Map extends Phaser.Tilemaps.Tilemap {
       })
     }
 
-    this.walls = walls
+    this.state = {
+      scene,
+      ground,
+      walls,
+    }
 
-    scene.add.existing(this)
+    this.mount = this.mount.bind(this)
+    this.loadStartingPositions = this.loadStartingPositions.bind(this)
+    this.addPlayer = this.addPlayer.bind(this)
+  }
+
+  mount () {
+    const {
+      scene: {
+        add,
+        cameras,
+        scale: {
+          gameSize,
+        },
+      },
+    } = this.state
+
+    this.loadStartingPositions()
+
+    cameras.main.setPosition(
+      gameSize.width / 4,
+      50
+    )
+
+    add.existing(this)
+  }
+
+  loadStartingPositions () {
+    const { state } = this
+
+    const positions = getPositionObjectsFromMapData(this)
+
+    const startingPositions = {
+      ghost: positions.filter(propEq('type', 'ghost')),
+      pacman: positions.filter(propEq('type', 'pacman')),
+    }
+
+    this.state = mergeLeft({
+      startingPositions,
+    }, state)
+  }
+
+  addPlayer (player) {
+    const {
+      startingPositions: {
+        ghost: ghostStartingPositions,
+        pacman: pacmanStartingPositions,
+      },
+    } = this.state
+
+    const possibleStartingPositions = player.state.type === 'pacman'
+      ? pacmanStartingPositions
+      : ghostStartingPositions
+
+    const { x, y } = possibleStartingPositions.shift()
+
+    player.setPosition(x + player.width / 2, y + player.height / 2)
+    player.mount()
   }
 }
 

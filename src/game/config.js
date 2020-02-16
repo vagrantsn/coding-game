@@ -11,7 +11,7 @@ const config = {
     },
   },
   scale: {
-    mode: Phaser.Scale.RESIZE,
+    mode: Phaser.Scale.CENTER_HORIZONTALLY,
   },
 }
 
