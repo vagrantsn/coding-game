@@ -1,20 +1,17 @@
 import Phaser from 'phaser'
 import {
-  find,
   map,
   mergeLeft,
   pick,
   pipe,
-  prop,
   propEq,
 } from 'ramda'
 
+import { getObjectsFromLayer } from '../utils/tilemap'
 import config from '../config'
 
 const getPositionObjectsFromMapData = pipe(
-  prop('objects'),
-  find(propEq('name', 'positions')),
-  prop('objects'),
+  getObjectsFromLayer('positions'),
   map(pick(['id', 'x', 'y', 'type']))
 )
 

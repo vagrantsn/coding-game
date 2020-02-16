@@ -42,6 +42,8 @@ class Main extends Factory {
 
     map.mount()
     map.addPlayer(pacman)
+
+    window.player = pacman
   }
 }
 

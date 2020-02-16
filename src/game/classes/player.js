@@ -6,6 +6,7 @@ import {
   values,
 } from 'ramda'
 
+import { getObjectsFromLayer } from '../utils/tilemap'
 import { overlaps } from '../utils/collision'
 import config from '../config'
 
@@ -39,6 +40,14 @@ const getNearestTile = (position) => {
   const snapped = (Math.round(position / snap) * snap)
 
   return snapped + snap / 2
+}
+
+const findOppositePortal = (collidingPortal, portals) => {
+  const oppositePortal = portals.find(({ id, name }) => {
+    return id !== collidingPortal.id && name === collidingPortal.name
+  })
+
+  return oppositePortal
 }
 
 class Player extends Phaser.GameObjects.Sprite {
@@ -83,6 +92,8 @@ class Player extends Phaser.GameObjects.Sprite {
     this.headTo = this.headTo.bind(this)
     this.setupHeadingColliders = this.setupHeadingColliders.bind(this)
     this.checkHeadingCollisions = this.checkHeadingCollisions.bind(this)
+    this.isCollidingWithPortal = this.isCollidingWithPortal.bind(this)
+    this.warpToOppositePortal = this.warpToOppositePortal.bind(this)
   }
 
   mount () {
@@ -120,7 +131,6 @@ class Player extends Phaser.GameObjects.Sprite {
     } = this.state
 
     scene.physics.add.existing(this)
-    this.body.setCollideWorldBounds(true)
 
     values(headingColliders).map(headingCollider => (
       scene.physics.add.existing(headingCollider)
@@ -249,6 +259,56 @@ class Player extends Phaser.GameObjects.Sprite {
     this.state = newState
   }
 
+  isCollidingWithPortal () {
+    const { map } = this.state
+
+    const portals = getObjectsFromLayer('portals', map)
+
+    const collidingPortal = portals.find(({ x, y }) => {
+      const playerWidth = this.width
+      return this.body.hitTest(x + playerWidth / 2, y + playerWidth / 2)
+    })
+
+    return collidingPortal
+  }
+
+  warpToOppositePortal (collidingPortal) {
+    const {
+      body: {
+        position,
+      },
+      state: {
+        map,
+      },
+      width,
+    } = this
+    const currentPosition = clone(position)
+
+    const portals = getObjectsFromLayer('portals', map)
+    const oppositePortal = findOppositePortal(collidingPortal, portals)
+
+    const isVerticalWarp = this.body.deltaY() !== 0
+
+    const newX = oppositePortal.x > 0
+      ? oppositePortal.x - width / 2
+      : (oppositePortal.x + width) + width / 2
+
+    const newY = oppositePortal.y > 0
+      ? oppositePortal.y - width / 2
+      : (oppositePortal.y + width) + width / 2
+
+    const coordinatesToWarp = new Phaser.Math.Vector2(
+      !isVerticalWarp
+        ? newX
+        : currentPosition.x + width / 2,
+      isVerticalWarp
+        ? newY
+        : currentPosition.y + width / 2
+    )
+
+    this.setPosition(coordinatesToWarp.x, coordinatesToWarp.y)
+  }
+
   update () {
     const {
       cursors,
@@ -277,6 +337,11 @@ class Player extends Phaser.GameObjects.Sprite {
     }
 
     this.setupHeadingColliders()
+    const collidingPortal = this.isCollidingWithPortal()
+
+    if (collidingPortal) {
+      this.warpToOppositePortal(collidingPortal)
+    }
   }
 }
 
